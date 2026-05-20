@@ -1,0 +1,37 @@
+# Nextflow
+work/
+.nextflow/
+.nextflow.log*
+reports/
+timeline*.html
+report*.html
+trace*.txt
+
+# Apptainer / Singularity
+apptainer_cache/
+*.sif
+*.img
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Données (Ne jamais versionner les données patient)
+inputs/
+derivatives/
+*.nii
+*.nii.gz
+*.bval
+*.bvec
+*.json
+*.b0
+*.mat
+*.mif
+
+# IDE et OS
+.idea/
+.vscode/
+.DS_Store
+*.swp
