@@ -18,7 +18,7 @@ __pycache__/
 *$py.class
 .pytest_cache/
 
-# Données (Ne jamais versionner les données patient)
+# Data (Never version patient data)
 inputs/
 derivatives/
 *.nii
@@ -30,7 +30,7 @@ derivatives/
 *.mat
 *.mif
 
-# IDE et OS
+# IDE and OS
 .idea/
 .vscode/
 .DS_Store

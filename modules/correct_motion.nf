@@ -34,15 +34,15 @@ process EDDY {
 
     export CUDA_VISIBLE_DEVICES=\$((${task.index} % 2))
 
-    # 1. Création du fichier index
+    # 1. Create index file
     num_vols=\$(wc -w < ${bval})
     for i in \$(seq 1 \$num_vols); do echo 1 >> index.txt; done
 
-    # 2. Extraction dynamique du préfixe TOPUP
+    # 2. Dynamic extraction of TOPUP prefix
     FIRST_TOPUP_FILE=\$(echo "${topup_files}" | awk '{print \$1}')
     TOPUP_PREFIX=\$(echo \$FIRST_TOPUP_FILE | sed 's/_fieldcoef.nii.gz//' | sed 's/_movpar.txt//')
     
-    # 3. Lancement d'Eddy_cuda
+    # 3. Launch Eddy_cuda
     eddy_cuda \\
         --imain=${dwi} \\
         --mask=${mask} \\
@@ -56,7 +56,7 @@ process EDDY {
         --data_is_shelled \\
         --verbose
         
-    # 4. Renommage
+    # 4. Rename output
     mv ${sub_id}_eddy_corr.eddy_rotated_bvecs ${sub_id}_eddy_rotated.bvecs
     """
 }

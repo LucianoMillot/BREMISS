@@ -22,11 +22,11 @@ process SYNTHB0 {
     tuple val(sub_id), path(t1), path(b0_mean), val(readout_time)
 
     output:
-    // Sortie 1 : L'image corrigée pour le masque
+    // Output 1: Corrected image for the mask
     tuple val(sub_id), path("${sub_id}_b0_vrt.nii.gz"), emit: b0_vrt
-    // Sortie 2 : Les fichiers topup pour Eddy
+    // Output 2: Topup files for Eddy
     tuple val(sub_id), path("topup_results*"), emit: topup_files
-    // Sortie 3 : Le fichier acqparams
+    // Output 3: Acqparams file
     tuple val(sub_id), path("acqparams_eddy.txt"), emit: acqparams_eddy
 
     script:
@@ -66,9 +66,9 @@ process REGISTER_T1_TO_B0 {
 
     script:
     """
-    echo "=== Début du recalage T1 -> Espace Diffusion ==="
+    echo "=== Starting T1 -> Diffusion Space Registration ==="
     
-    # 1. Standardisation et Crop
+    # 1. Standardization and Crop
     fslreorient2std ${t1_resampled} T1_std.nii.gz
     fslreorient2std ${b0_corr} b0_corr_std.nii.gz
     robustfov -i T1_std.nii.gz -r T1_cropped.nii.gz
@@ -77,7 +77,7 @@ process REGISTER_T1_TO_B0 {
     bet T1_cropped.nii.gz ${sub_id}_T1_brain.nii.gz -R -f 0.3
     bet b0_corr_std.nii.gz ${sub_id}_b0_corr_brain.nii.gz -f 0.3
     
-    # 3. Recalage BBR (b0 -> T1)
+    # 3. BBR Registration (b0 -> T1)
     epi_reg --epi=b0_corr_std.nii.gz \\
             --t1=T1_cropped.nii.gz \\
             --t1brain=${sub_id}_T1_brain.nii.gz \\
@@ -86,7 +86,7 @@ process REGISTER_T1_TO_B0 {
     # 4. Inversion (T1 -> b0)
     convert_xfm -omat ${sub_id}_T1_to_Diffusion.mat -inverse b0_to_T1_epireg.mat
     
-    # 5. Application pour QA visuel
+    # 5. Application for Visual QA
     flirt -in T1_cropped.nii.gz \\
           -ref ${sub_id}_b0_corr_brain.nii.gz \\
           -applyxfm -init ${sub_id}_T1_to_Diffusion.mat \\
@@ -105,11 +105,11 @@ process REGISTER_MNI_TO_T1 {
 
     script:
     """
-    # Recalage T1 -> MNI (Affine) pour ALPS
+    # T1 -> MNI Registration (Affine) for ALPS
     MNI_TEMPLATE="\$FSLDIR/data/standard/MNI152_T1_1mm_brain.nii.gz"
     flirt -in ${t1_brain} -ref \$MNI_TEMPLATE -omat T1_to_MNI_affine.mat
     
-    # Combinaison pour MNI -> Diffusion (MNI -> T1 -> Diff)
+    # Combination for MNI -> Diffusion (MNI -> T1 -> Diff)
     convert_xfm -omat MNI_to_T1_affine.mat -inverse T1_to_MNI_affine.mat
     convert_xfm -omat ${sub_id}_MNI_to_Diffusion_affine.mat -concat ${t1_to_diff_mat} MNI_to_T1_affine.mat
     """

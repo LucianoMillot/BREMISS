@@ -59,12 +59,12 @@ process BIAS_CORRECTION {
 
     script:
     """
-    # 1. Harmonisation du masque avec le DWI (Eddy-corrected)
-    # On s'assure que le masque a EXACTEMENT le même header que l'image
+    # 1. Harmonize mask with DWI (Eddy-corrected)
+    # Ensure the mask has EXACTLY the same header as the image
     mrgrid ${mask} regrid -template ${dwi} mask_harmonized.nii.gz -force
 
-    # 2. Correction du champ de biais avec ANTs
-    # On utilise le masque harmonisé
+    # 2. Bias field correction with ANTs
+    # Use the harmonized mask
     dwibiascorrect ants ${dwi} ${sub_id}_dwi_n4.nii.gz \
         -fslgrad ${bvec} ${bval} \
         -mask mask_harmonized.nii.gz \

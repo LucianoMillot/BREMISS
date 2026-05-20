@@ -37,11 +37,11 @@ process CALCULATE_ALPS_INDEX {
 
     script:
     """
-    # 1. Génération des sphères MNI
+    # 1. Generation of MNI spheres
     MNI_TEMPLATE="\$FSLDIR/data/standard/MNI152_T1_1mm_brain.nii.gz"
     python3 ${baseDir}/scripts/create_spheres.py \$MNI_TEMPLATE
 
-    # 2. Projection vers l'espace Diffusion
+    # 2. Projection to Diffusion space
     for roi in PROJ_R ASSOC_R PROJ_L ASSOC_L; do
         flirt -in ROI_\${roi}_MNI.nii.gz \\
               -ref ${b0_corr_brain} \\
@@ -50,7 +50,7 @@ process CALCULATE_ALPS_INDEX {
               -interp nearestneighbour
     done
 
-    # 5. Extraction des moyennes
+    # 5. Mean extraction
     DX_PROJ_L=\$(fslmeants -i ${dxx} -m ${sub_id}_ROI_PROJ_L_in_Diffusion.nii.gz)
     DX_PROJ_R=\$(fslmeants -i ${dxx} -m ${sub_id}_ROI_PROJ_R_in_Diffusion.nii.gz)
     DX_ASSOC_L=\$(fslmeants -i ${dxx} -m ${sub_id}_ROI_ASSOC_L_in_Diffusion.nii.gz)
@@ -62,7 +62,7 @@ process CALCULATE_ALPS_INDEX {
     DZ_ASSOC_L=\$(fslmeants -i ${dzz} -m ${sub_id}_ROI_ASSOC_L_in_Diffusion.nii.gz)
     DZ_ASSOC_R=\$(fslmeants -i ${dzz} -m ${sub_id}_ROI_ASSOC_R_in_Diffusion.nii.gz)
 
-    # 6. Calcul de l'ALPS Index
+    # 6. ALPS Index Calculation
     python3 -c "
 alps_L = (float(\$DX_PROJ_L) + float(\$DX_ASSOC_L)) / (float(\$DY_PROJ_L) + float(\$DZ_ASSOC_L))
 alps_R = (float(\$DX_PROJ_R) + float(\$DX_ASSOC_R)) / (float(\$DY_PROJ_R) + float(\$DZ_ASSOC_R))

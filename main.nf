@@ -26,13 +26,13 @@ workflow {
 
     RESAMPLE_T1(t1_ch)
 
-    // --- 2. PHASE 1 : NETTOYAGE ---
+    // --- 2. PHASE 1: CLEANING ---
 
     cleaning_input_ch = dwi_raw_ch.map { id, nifti, bval, bvec, rt -> [id, nifti] }
 
     clean_dwi_ch = RICIAN_CORRECTION(GIBBS_UNRINGING(DENOISING(cleaning_input_ch)))
 
-    // --- 3. PHASE 2 : GÉOMÉTRIE ---
+    // --- 3. PHASE 2: GEOMETRY ---
 
     b0_extraction_ch = clean_dwi_ch.join(bval_ch).join(bvec_ch)
     b0_mean_ch = EXTRACT_B0(b0_extraction_ch)
@@ -44,7 +44,7 @@ workflow {
 
     SYNTHB0(synthb0_ch)
 
-    // --- 4. RECALAGE ANATOMIQUE (T1 -> Diffusion) ---
+    // --- 4. ANATOMICAL REGISTRATION (T1 -> Diffusion) ---
     reg_input_ch = RESAMPLE_T1.out.t1_resampled
         .join(SYNTHB0.out.b0_vrt)
     REGISTER_T1_TO_B0(reg_input_ch)
@@ -73,8 +73,8 @@ workflow {
 
     DKI_FITTING(dki_input_ch)
 
-    // --- 5. POST-TRAITEMENT : ALPS INDEX ---
-    // Recalage MNI -> T1 -> Diffusion
+    // --- 5. POST-PROCESSING: ALPS INDEX ---
+    // Registration MNI -> T1 -> Diffusion
     mni_reg_input_ch = REGISTER_T1_TO_B0.out.t1_brain
         .join(REGISTER_T1_TO_B0.out.mat)
     
