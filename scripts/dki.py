@@ -15,7 +15,7 @@ from dipy.io.streamline import save_tractogram
 from dipy.data import get_sphere
 
 def compute_dki(dwi_path, bval_path, bvec_path, mask_path, prefix):
-    # 1. Chargement
+    # 1. Load data
     data_img = nib.load(dwi_path)
     data = data_img.get_fdata()
     affine = data_img.affine
@@ -26,12 +26,12 @@ def compute_dki(dwi_path, bval_path, bvec_path, mask_path, prefix):
     bvals, bvecs = read_bvals_bvecs(bval_path, bvec_path)
     gtab = gradient_table(bvals, bvecs=bvecs)
 
-    # 3. Ajustement du modèle DKI
+    # 3. Fit DKI model
     print(f"Fitting DKI model for {prefix}...")
     dkimodel = dki.DiffusionKurtosisModel(gtab)
     dkifit = dkimodel.fit(data, mask=mask)
 
-    # 4. Métriques scalaires
+    # 4. Scalar metrics
     fa = np.nan_to_num(dkifit.fa)
     metrics = {
         'MK': np.nan_to_num(dkifit.mk()),
@@ -45,26 +45,26 @@ def compute_dki(dwi_path, bval_path, bvec_path, mask_path, prefix):
         'Dzz': np.nan_to_num(dkifit.quadratic_form[..., 2, 2])
     }
 
-    # 5. Sauvegarde des métriques
+    # 5. Save metrics
     for name, data_array in metrics.items():
         out_name = f"{prefix}_{name}.nii.gz"
         img = nib.Nifti1Image(data_array.astype(np.float32), affine)
         nib.save(img, out_name)
         print(f"Saved: {out_name}")
 
-    # 6. FA colorée (FA directionnelle)
+    # 6. Color FA
     v1 = np.nan_to_num(dkifit.evecs[..., :, 0])
     color_fa = np.abs(v1) * fa[..., np.newaxis]
     color_img = nib.Nifti1Image(color_fa.astype(np.float32), affine)
     nib.save(color_img, f"{prefix}_color_fa.nii.gz")
 
-    # 7. Tractographie
+    # 7. Tractography
     print(f"Generating streamlines for {prefix}...")
 
-    # Sphère de directions
+    # Direction sphere
     sphere = get_sphere('repulsion724')
 
-    # Extraction des directions (pics)
+    # Extract directions (peaks)
     peaks = peaks_from_model(model=dkimodel, data=data, 
                              sphere=sphere, 
                              relative_peak_threshold=.5, 
@@ -72,20 +72,20 @@ def compute_dki(dwi_path, bval_path, bvec_path, mask_path, prefix):
                              mask=mask, 
                              parallel=True)
 
-    # Critère d'arrêt et points de départ (graines)
+    # Stopping criterion and seeds
     stopping_criterion = ThresholdStoppingCriterion(fa, .2)
     seeds = utils.seeds_from_mask(mask, density=1, affine=affine)
 
-    # Suivi des fibres (Tractographie locale)
+    # Fiber tracking (Local tractography)
     streamlines_generator = LocalTracking(peaks, stopping_criterion, seeds, affine, step_size=.5)
     streamlines = Streamlines(streamlines_generator)
 
-    # Sauvegarde des fibres (tractogramme)
+    # Save streamlines (tractogram)
     sft = StatefulTractogram(streamlines, data_img, Space.RASMM)
     save_tractogram(sft, f"{prefix}_tracto.trk")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Ajustement DKI avec DIPY et contrôle qualité de la tractographie')
+    parser = argparse.ArgumentParser(description='DIPY DKI Fitting & QA Tracto')
     parser.add_argument('--input', required=True)
     parser.add_argument('--bval', required=True)
     parser.add_argument('--bvec', required=True)
