@@ -26,7 +26,7 @@ def compute_dki(dwi_path, bval_path, bvec_path, mask_path, prefix):
     bvals, bvecs = read_bvals_bvecs(bval_path, bvec_path)
     gtab = gradient_table(bvals, bvecs=bvecs)
 
-    # 3. Fit DKI 
+    # 3. Ajustement du modèle DKI
     print(f"Fitting DKI model for {prefix}...")
     dkimodel = dki.DiffusionKurtosisModel(gtab)
     dkifit = dkimodel.fit(data, mask=mask)
@@ -52,7 +52,7 @@ def compute_dki(dwi_path, bval_path, bvec_path, mask_path, prefix):
         nib.save(img, out_name)
         print(f"Saved: {out_name}")
 
-    # 6. Color FA
+    # 6. FA colorée (FA directionnelle)
     v1 = np.nan_to_num(dkifit.evecs[..., :, 0])
     color_fa = np.abs(v1) * fa[..., np.newaxis]
     color_img = nib.Nifti1Image(color_fa.astype(np.float32), affine)
@@ -64,7 +64,7 @@ def compute_dki(dwi_path, bval_path, bvec_path, mask_path, prefix):
     # Sphère de directions
     sphere = get_sphere('repulsion724')
 
-    # Extraction des directions
+    # Extraction des directions (pics)
     peaks = peaks_from_model(model=dkimodel, data=data, 
                              sphere=sphere, 
                              relative_peak_threshold=.5, 
@@ -72,20 +72,20 @@ def compute_dki(dwi_path, bval_path, bvec_path, mask_path, prefix):
                              mask=mask, 
                              parallel=True)
 
-    # Critère d'arrêt et Graines
+    # Critère d'arrêt et points de départ (graines)
     stopping_criterion = ThresholdStoppingCriterion(fa, .2)
     seeds = utils.seeds_from_mask(mask, density=1, affine=affine)
 
-    # Tracking
+    # Suivi des fibres (Tractographie locale)
     streamlines_generator = LocalTracking(peaks, stopping_criterion, seeds, affine, step_size=.5)
     streamlines = Streamlines(streamlines_generator)
 
-    # Sauvegarde
+    # Sauvegarde des fibres (tractogramme)
     sft = StatefulTractogram(streamlines, data_img, Space.RASMM)
     save_tractogram(sft, f"{prefix}_tracto.trk")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='DIPY DKI Fitting & QA Tracto')
+    parser = argparse.ArgumentParser(description='Ajustement DKI avec DIPY et contrôle qualité de la tractographie')
     parser.add_argument('--input', required=True)
     parser.add_argument('--bval', required=True)
     parser.add_argument('--bvec', required=True)
