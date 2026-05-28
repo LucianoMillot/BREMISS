@@ -38,7 +38,10 @@ def compute_dki(dwi_path, bval_path, bvec_path, mask_path, prefix):
         'FA': fa,
         'MD': np.nan_to_num(dkifit.md),
         'Dxx': np.nan_to_num(dkifit.quadratic_form[..., 0, 0]),
+        'Dxy': np.nan_to_num(dkifit.quadratic_form[..., 0, 1]),
         'Dyy': np.nan_to_num(dkifit.quadratic_form[..., 1, 1]),
+        'Dxz': np.nan_to_num(dkifit.quadratic_form[..., 0, 2]),
+        'Dyz': np.nan_to_num(dkifit.quadratic_form[..., 1, 2]),
         'Dzz': np.nan_to_num(dkifit.quadratic_form[..., 2, 2])
     }
 

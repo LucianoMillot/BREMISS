@@ -18,7 +18,7 @@ __pycache__/
 *$py.class
 .pytest_cache/
 
-# Data (Never version patient data)
+# Data 
 inputs/
 derivatives/
 *.nii

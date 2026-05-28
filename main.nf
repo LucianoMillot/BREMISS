@@ -85,5 +85,5 @@ workflow {
         .join(REGISTER_MNI_TO_T1.out.mni_to_diff_mat)
         .join(DKI_FITTING.out.for_alps)
 
-    CALCULATE_ALPS_INDEX(alps_ch)
+    CALCULATE_ALPS_INDEX(alps_ch, file("${projectDir}/scripts/create_spheres.py"), file("${projectDir}/scripts/compute_alps.py"))
 }

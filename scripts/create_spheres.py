@@ -13,10 +13,10 @@ inv_affine = np.linalg.inv(affine)
 
 # MNI Coordinates (X, Y, Z)
 rois = {
-    "PROJ_R": [-26, -18, 28],
-    "ASSOC_R": [-38, -18, 28],
-    "PROJ_L": [26, -18, 28],
-    "ASSOC_L": [38, -18, 28]
+    "PROJ_R": [26, -18, 28],
+    "ASSOC_R": [38, -18, 28],
+    "PROJ_L": [-26, -18, 28],
+    "ASSOC_L": [-38, -18, 28]
 }
 
 x, y, z = np.ogrid[0:data_shape[0], 0:data_shape[1], 0:data_shape[2]]
